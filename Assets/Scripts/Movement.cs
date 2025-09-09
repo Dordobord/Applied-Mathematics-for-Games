@@ -11,10 +11,8 @@ public class Movement : MonoBehaviour
     public float restartDist = 1f;
     private int direction = 1;
     private float baseX, baseY;
-
     public Text winText;
 
-    private bool hasWon = false;
 
     void Start()
     {
@@ -26,7 +24,7 @@ public class Movement : MonoBehaviour
     void Update()
     {
 
-        if (!hasWon) MovementControls();
+        MovementControls();
         CalculateDistance();
     }
 
