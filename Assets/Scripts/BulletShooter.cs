@@ -1,41 +1,24 @@
-using System;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 public class BulletShooter : MonoBehaviour
 {
-    [SerializeField] GameObject rocketPrefab;
-    public float cooldown = 3f;
-    public int bulletCount = 4;
-    
-    public float timer = 0;
+    [SerializeField] private GameObject rocketPrefab;
+    public float cooldown = 2f; 
+    private float timer = 0f;
+
     void Update()
     {
         timer += Time.deltaTime;
-
-        if (timer >= cooldown)
-        {
-            Debug.Log("Shooting");
-            ShootBullets();
-            timer = 0f;
-        }
     }
 
-    private void ShootBullets()
+    public void TryShoot(Vector2 direction)
     {
-        float angleCounter = 360f / bulletCount;
+        if (timer < cooldown) return; 
 
-        for (int i = 0; i < bulletCount; i++)
-        {
-            float angle = Mathf.Deg2Rad * angleCounter * i; //Deg -> Rad
+        float rotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        GameObject bullet = Instantiate(rocketPrefab, transform.position, Quaternion.Euler(0, 0, rotation));
+        bullet.GetComponent<Bullet>().SetDirection(direction.x, direction.y);
 
-            float x = Mathf.Cos(angle);
-            float y = Mathf.Sin(angle);
-
-            float rotation = Mathf.Atan2(y, x) * Mathf.Rad2Deg;//gives angle and Rad -> Deg
-
-            GameObject firePoint = Instantiate(rocketPrefab, transform.position, Quaternion.Euler(0,0,rotation));
-            firePoint.GetComponent<Bullet>().SetDirection(x, y); //class Bullet 
-        }
+        timer = 0f; 
     }
 }
