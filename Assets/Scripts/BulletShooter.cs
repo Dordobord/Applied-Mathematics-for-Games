@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class BulletShooter : MonoBehaviour
 {
-    [SerializeField] private GameObject rocketPrefab;
-    public float cooldown = 2f; 
+    [SerializeField] private GameObject bulletPrefab;
+    public float cooldown = 2f;
     private float timer = 0f;
 
     void Update()
@@ -11,14 +11,23 @@ public class BulletShooter : MonoBehaviour
         timer += Time.deltaTime;
     }
 
-    public void TryShoot(Vector2 direction)
+    public void TryShoot(Transform enemy)
     {
-        if (timer < cooldown) return; 
+        if (timer < cooldown || enemy == null) return;
 
-        float rotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        GameObject bullet = Instantiate(rocketPrefab, transform.position, Quaternion.Euler(0, 0, rotation));
-        bullet.GetComponent<Bullet>().SetDirection(direction.x, direction.y);
+        Vector2 direction = enemy.position - transform.position;
+        float distance = Mathf.Sqrt(direction.x * direction.x + direction.y * direction.y);
 
-        timer = 0f; 
+        if (distance == 0f) return;
+
+        float normalizeX = direction.x / distance;
+        float normalizeY = direction.y / distance;
+
+        float rotation = Mathf.Atan2(normalizeY, normalizeX) * Mathf.Rad2Deg;
+
+        GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.Euler(0, 0, rotation));
+        bullet.GetComponent<Bullet>().SetDirection(normalizeX, normalizeY, enemy);
+
+        timer = 0f;
     }
 }

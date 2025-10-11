@@ -1,36 +1,50 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class Bullet : MonoBehaviour
 {
-    private float dx, dy;
-    public float speed = 5f;
-    public float lifeTime = 5f;       
-    public float hitDistance = 0.5f;  
-    private Transform player;
+    [SerializeField] private float speed = 5f;
+    [SerializeField] private float lifeTime = 5f;
+    [SerializeField] private float hitDist = 0.5f;
+    [SerializeField] private int damage = 1;
 
-    public void SetDirection(float x, float y)
+    private float directionX, directionY;
+    private Transform target;
+    private Health health;
+
+    void Start()
     {
-        dx = x;
-        dy = y;
-        player = GameObject.FindGameObjectWithTag("Player").transform;
-        Destroy(gameObject, lifeTime); 
+        Destroy(gameObject, lifeTime);
     }
 
     void Update()
     {
-        Vector3 pos = transform.position;
-        pos.x += dx * speed * Time.deltaTime;
-        pos.y += dy * speed * Time.deltaTime;
+        Vector2 pos = transform.position;
+        pos.x += directionX * speed * Time.deltaTime;
+        pos.y += directionY * speed * Time.deltaTime;
         transform.position = pos;
 
-        if (player != null)
+        if (target != null)
         {
-            float dist = Vector3.Distance(transform.position, player.position);
-            if (dist < hitDistance)
+            float directX = target.position.x - pos.x;
+            float directY = target.position.y - pos.y;
+            float distance = Mathf.Sqrt(directX * directX + directY * directY);
+
+            if (distance < hitDist)
             {
-                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                if (health != null)
+                    health.TakeDamage();
+
+                Destroy(gameObject);
             }
         }
+    }
+    public void SetDirection(float x, float y, Transform enemy)
+    {
+        directionX = x;
+        directionY = y;
+        target = enemy;
+
+        if (target != null)
+            health = target.GetComponent<Health>();
     }
 }

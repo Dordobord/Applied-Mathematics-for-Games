@@ -1,41 +1,62 @@
 using UnityEngine;
 
-public class Turret : MonoBehaviour
+public class Turret: MonoBehaviour
 {
-    public Transform target;      
-    public float rotationSpeed = 5f; 
-    public float fireRange = 8f;     
-    public float fireAngle = 10f; 
-
-    private BulletShooter shooter;
+    private BulletShooter bulletShooter_;
+    [SerializeField] private Transform target;
+    [SerializeField] private float rotSpeed = 2f;
+    [SerializeField] private float fireRange = 5f;
+    [SerializeField] private float fireAngle = 10f;
+    float currentAngle = 0f;
 
     void Start()
     {
-        shooter = GetComponent<BulletShooter>();
+        bulletShooter_ = GetComponent<BulletShooter>();
     }
 
     void Update()
     {
         if (target == null) return;
+        
+        float directionX, directionY;
+        CalculateDirection(out directionX, out directionY);
 
-        Vector2 dir = target.position - transform.position;
-
-        //Rotate to player
-        float targetAngle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        Quaternion lookRot = Quaternion.Euler(0, 0, targetAngle);
-        transform.rotation = Quaternion.Lerp(transform.rotation, lookRot, rotationSpeed * Time.deltaTime);
-
-        float distance = dir.magnitude;
+        float distance = CalculateDistance(directionX, directionY); 
+        
         if (distance > fireRange) return;
 
-        Vector2 forward = transform.right;  
-        Vector2 toTarget = dir.normalized;   
-        float angleToTarget = Vector2.Angle(forward, toTarget);
+        float targetAngle = Mathf.Atan2(directionY, directionX) * Mathf.Rad2Deg; 
+        currentAngle = Mathf.LerpAngle(currentAngle, targetAngle, rotSpeed * Time.deltaTime);
 
-        //range
-        if (angleToTarget < fireAngle)
+        transform.rotation = Quaternion.Euler(0, 0, currentAngle); 
+
+        float normalizeX = directionX / distance; 
+        float normalizeY = directionY / distance;
+
+        float faceX = Mathf.Cos(currentAngle * Mathf.Deg2Rad); 
+        float faceY = Mathf.Sin(currentAngle * Mathf.Deg2Rad);
+
+        float dot = (faceX * normalizeX) + (faceY * normalizeY); 
+
+        float angleDifference = Mathf.Acos(dot) * Mathf.Rad2Deg;
+
+        if (angleDifference < fireAngle && bulletShooter_ != null)
         {
-            shooter.TryShoot(forward);
+            bulletShooter_.TryShoot(target);
         }
+
     }
+
+    private static float CalculateDistance(float directionX, float directionY)
+    {
+        return Mathf.Sqrt(directionX * directionX + directionY * directionY);
+    }
+
+
+    private void CalculateDirection(out float directionX, out float directionY)
+    {
+        directionX = target.position.x - transform.position.x;
+        directionY = target.position.y - transform.position.y;
+    }
+
 }
